@@ -106,10 +106,10 @@ function draw(hover) {
 
   // 中心文字（兩行：2022年 + 76%）
   ctx.textAlign = "center";
-  ctx.font = '22px "Microsoft JhengHei"';
+  ctx.font = '30px "Microsoft JhengHei"';
   ctx.fillStyle = "#444";
-  ctx.fillText("2022年", centerX, centerY - 70);  // 上面一行
-  ctx.font = '40px "Microsoft JhengHei"';
+  ctx.fillText("2022年", centerX, centerY - 80);  // 上面一行
+  ctx.font = 'bold 50px "Microsoft JhengHei"';
   ctx.fillText(`${value}%`, centerX, centerY - 20);  // 下面一行
 
   // 刻度

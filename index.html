@@ -22,7 +22,7 @@
 </head>
 <body>
 
-<canvas id="gauge" width="900" height="650"></canvas>
+<canvas id="gauge" width="800" height="600"></canvas>
 <div class="tooltip" id="tooltip"></div>
 
 <script>
@@ -62,10 +62,10 @@ function draw(hover) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // 標題
-  ctx.font = '24px "Microsoft JhengHei"';
+  ctx.font = 'bold 26px "Microsoft JhengHei"';
   ctx.fillStyle = "#222";
   ctx.textAlign = "center";
-  ctx.fillText(title, centerX, 180);
+  ctx.fillText(title, centerX, 145);
 
   // === 軌道 ===
   ctx.beginPath();

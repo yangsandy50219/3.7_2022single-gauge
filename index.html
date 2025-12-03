@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>2022 台北市托育服務供給率</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; background: #fafafa;
+    display: flex; justify-content: center; align-items: center; height: 100%;
+    font-family: "Microsoft JhengHei", Arial, sans-serif;
+  }
+  canvas { 
+    background: white; border-radius: 24px; 
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+  }
+  .tooltip {
+    position: fixed; background: rgba(0,0,0,0.85); color: white;
+    padding: 8px 12px; border-radius: 6px; font-size: 14px;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gauge" width="900" height="650"></canvas>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+// =========================
+// 單層半圓儀表圖（含目標線）
+// =========================
+const canvas = document.getElementById("gauge");
+const ctx = canvas.getContext("2d");
+const tooltip = document.getElementById("tooltip");
+
+// === 基本資料 ===
+const title = "2022年台北市公共及準公共化托育服務供給率";
+const value = 76;
+const color = "rgba(119,180,132,0.6)";
+const targetPct = 80;
+const targetColor = "#3a8646";
+
+// === 幾何參數 ===
+const centerX = canvas.width / 2;
+const centerY = canvas.height - 140; // 與前一張儀表一致
+const radius = 220;
+const widthBar = 38;
+
+// 上半圓角度設定
+const startAngle = -Math.PI;  // -180°
+const fullAngle = Math.PI;    // 180°
+const endAngle = startAngle + (value / 100) * fullAngle;
+
+// 80% 目標線位置
+const targetAngle = startAngle + (targetPct / 100) * fullAngle;
+
+
+// =========================
+//        主繪製
+// =========================
+function draw(hover) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 標題
+  ctx.font = '24px "Microsoft JhengHei"';
+  ctx.fillStyle = "#222";
+  ctx.textAlign = "center";
+  ctx.fillText(title, centerX, 180);
+
+  // === 軌道 ===
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, startAngle, startAngle + fullAngle);
+  ctx.lineWidth = widthBar;
+  ctx.strokeStyle = "#e8e8e8";
+  ctx.stroke();
+
+  // === 進度弧 ===
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+  ctx.lineWidth = hover ? widthBar + 10 : widthBar - 4;
+  ctx.strokeStyle = hover ? color.replace("0.5", "1") : color;
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  // === 80% 目標線（加長版） ===
+  const outerOffset = radius + 40;   // 外端：拉長，超出刻度
+  const innerOffset = radius - 40;   // 內端：稍微再往內一點
+
+  const tx = centerX + outerOffset * Math.cos(targetAngle);
+  const ty = centerY + outerOffset * Math.sin(targetAngle);
+  const tx2 = centerX + innerOffset * Math.cos(targetAngle);
+  const ty2 = centerY + innerOffset * Math.sin(targetAngle);
+
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx2, ty2);
+  ctx.strokeStyle = targetColor;
+  ctx.lineWidth = 6;
+  ctx.stroke();
+
+  // 目標文字
+  ctx.font = '18px "Microsoft JhengHei"';
+  ctx.fillStyle = targetColor;
+  ctx.textAlign = "left";
+  ctx.fillText("2030年目標值：80%", tx + 10, ty+20);
+
+  // 中心文字（兩行：2022年 + 76%）
+  ctx.textAlign = "center";
+  ctx.font = '22px "Microsoft JhengHei"';
+  ctx.fillStyle = "#444";
+  ctx.fillText("2022年", centerX, centerY - 70);  // 上面一行
+  ctx.font = '40px "Microsoft JhengHei"';
+  ctx.fillText(`${value}%`, centerX, centerY - 20);  // 下面一行
+
+  // 刻度
+  drawTicks();
+}
+
+
+// =========================
+//        刻度線
+// =========================
+function drawTicks() {
+  const tickOuter = radius + 45;
+  const tickInner = radius + 15;
+  const labelDist = radius + 70;
+
+  ctx.strokeStyle = "#cccccc";
+  ctx.fillStyle = "#666";
+  ctx.font = '16px "Microsoft JhengHei"';
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i <= 10; i++) {
+    const pct = i * 10;
+    const ang = startAngle + (pct / 100) * fullAngle;
+    const cos = Math.cos(ang);
+    const sin = Math.sin(ang);
+
+    // 刻度線
+    ctx.beginPath();
+    ctx.moveTo(centerX + tickInner * cos, centerY + tickInner * sin);
+    ctx.lineTo(centerX + tickOuter * cos, centerY + tickOuter * sin);
+    ctx.stroke();
+
+    // 20% 一個標示
+    if (pct % 20 === 0) {
+      ctx.fillText(pct + "%", centerX + labelDist * cos, centerY + labelDist * sin);
+    }
+  }
+}
+
+
+// =========================
+//      滑鼠事件
+// =========================
+canvas.addEventListener("mousemove", e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const dx = mx - centerX;
+  const dy = my - centerY;
+  const dist = Math.hypot(dx, dy);
+  const ang = Math.atan2(dy, dx);
+
+  let hover = false;
+
+  // 判斷是否 hover 到弧線
+  if (Math.abs(dist - radius) < widthBar &&
+      ang >= startAngle && ang <= endAngle) {
+    hover = true;
+    tooltip.textContent = `台北市：${value}%`;
+    tooltip.style.left = (e.clientX + 15) + "px";
+    tooltip.style.top = (e.clientY + 15) + "px";
+    tooltip.style.opacity = "1";
+  } else {
+    tooltip.style.opacity = "0";
+  }
+
+  draw(hover);
+});
+
+canvas.addEventListener("mouseout", () => {
+  tooltip.style.opacity = "0";
+  draw(false);
+});
+
+// 初始繪製
+draw(false);
+</script>
+
+</body>
+</html>

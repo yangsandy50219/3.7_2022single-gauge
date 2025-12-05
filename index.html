@@ -22,7 +22,7 @@
 </head>
 <body>
 
-<canvas id="gauge" width="800" height="600"></canvas>
+<canvas id="gauge" width="700" height="550"></canvas>
 <div class="tooltip" id="tooltip"></div>
 
 <script>
@@ -42,8 +42,8 @@ const targetColor = "#3a8646";
 
 // === 幾何參數 ===
 const centerX = canvas.width / 2;
-const centerY = canvas.height - 140; // 與前一張儀表一致
-const radius = 220;
+const centerY = canvas.height - 150; // 與前一張儀表一致
+const radius = 180;
 const widthBar = 38;
 
 // 上半圓角度設定
@@ -102,7 +102,7 @@ function draw(hover) {
   ctx.font = '18px "Microsoft JhengHei"';
   ctx.fillStyle = targetColor;
   ctx.textAlign = "left";
-  ctx.fillText("2030年目標值：80%", tx + 10, ty+20);
+  ctx.fillText("2030年目標值：80%", tx - 30, ty - 40);
 
   // 中心文字（兩行：2022年 + 76%）
   ctx.textAlign = "center";
@@ -121,9 +121,9 @@ function draw(hover) {
 //        刻度線
 // =========================
 function drawTicks() {
-  const tickOuter = radius + 45;
+  const tickOuter = radius + 35;
   const tickInner = radius + 15;
-  const labelDist = radius + 70;
+  const labelDist = radius + 60;
 
   ctx.strokeStyle = "#cccccc";
   ctx.fillStyle = "#666";
